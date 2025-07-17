@@ -1,0 +1,13 @@
+molecule_name	detector	precursor	mz_start	mz_end	rt_start	rt_end
+Acetic_acid_FT	FT	0	174.123	174.125	?	?
+Acetic_acid_IT100	IT	174.13	99	101	?	?
+Acetic_acid_IT115	IT	174.13	114	116	?	?
+Acetic_acid_D3_FT	FT	0	177.142	177.144	?	?
+Acetic_acid_D3_IT100	IT	177.14	99	101	?	?
+Acetic_acid_D3_IT118	IT	177.14	117	119	?	?
+Propanoic_acid_FT	FT	0	188.139	188.141	?	?
+Propanoic_acid_IT100	IT	188.14	99	101	?	?
+Propanoic_acid_IT129	IT	188.14	128	130	?	?
+Propanoic_acid_D3_FT	FT	0	191.157	191.159	?	?
+Propanoic_acid_D3_IT100	IT	191.16	99	101	?	?
+Propanoic_acid_D3_IT132	IT	191.16	131	133	?	?
