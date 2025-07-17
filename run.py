@@ -33,7 +33,7 @@ def search_all_regions_in_file(filepath, searches):
 				print("Unknown MS Level:", spectrum.getMSLevel())
 
 
-	# We can now build and integrate chromatograms based on the searches we want to perform.
+	# We can now build and integrate chromatograms, based on the searches we want to perform.
 
 	integrator = oms.PeakIntegrator()
 	new_params = integrator.getParameters()
@@ -43,48 +43,48 @@ def search_all_regions_in_file(filepath, searches):
 	results = {}
 
 	for search in searches:
+		chromatogram = oms.MSChromatogram()
+
+		mz_start = float(search["mz_start"])
+		mz_end = float(search["mz_end"])
+
+		rt_start = float(search["rt_start"])
+		rt_end = float(search["rt_end"])
+				
+		scan_type = ""
+
 		match search["detector"]:
 			case "FT":
-				chromatogram = oms.MSChromatogram()
-
-				mz_start = float(search["mz_start"])
-				mz_end = float(search["mz_end"])
-
-				rt_start = float(search["rt_start"])
-				rt_end = float(search["rt_end"])
-				
-				all_rt = [spectrum.getRT() for spectrum in demuxed_spectra["FT"]]
-				rt_interval = [rt for rt in all_rt if rt > rt_start and rt < rt_end]
-				
-				intensities_interval = [extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end) for spectrum in demuxed_spectra["FT"]]
-
-				chromatogram.set_peaks([
-						all_rt,
-						intensities_interval
-					])
-
-				results[search["molecule_name"]] = integrator.integratePeak(chromatogram, rt_start, rt_end).area
-
-				#rts, ints = chromatogram.get_peaks()
-				#plt.plot(rts, ints)
-				#plt.show()
+				scan_type = "FT"
 
 			case "IT":
-				pass
+				scan_type = "IT_" + str(search["precursor"])
 
 			case _:
 				print("Error in search_sheet.tsv! Invalid detector!")
 
-	print(results)
+		peak_area = 0
+		if scan_type in demuxed_spectra.keys():
+			all_rt = [spectrum.getRT() for spectrum in demuxed_spectra[scan_type]]
+			rt_interval = [rt for rt in all_rt if rt > rt_start and rt < rt_end]
+			
+			intensities_interval = [extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end) for spectrum in demuxed_spectra[scan_type]]
 
-	#chromatograms = {}
+			chromatogram.set_peaks([
+					all_rt,
+					intensities_interval
+				])
 
-	#for detector_id in demuxed_spectra.keys():
-	#	chromatograms[detector_id] = oms.MSChromatogram()
-	#	chromatograms[detector_id].set_peaks([
-	#			[spectrum.getRT() for spectrum in demuxed_spectra[detector_id]],
-	#			[sum(spectrum.get_intensity_array()) for spectrum in demuxed_spectra[detector_id]]
-	#		])
+			peak_area = integrator.integratePeak(chromatogram, rt_start, rt_end).area
+
+		results[search["peak_name"]] = peak_area
+
+		if False:
+			rts, ints = chromatogram.get_peaks()
+			plt.plot(rts, ints)
+			plt.show()
+
+	return results
 
 def extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end):
 	intensity = 0
@@ -112,8 +112,9 @@ def main():
 		search_data = search_sheet[i].strip().split("\t")
 
 		search = {
-			"molecule_name": search_data[0],
-			"detector": search_data[1],			"precursor": search_data[2],
+			"peak_name": search_data[0],
+			"detector": search_data[1],			
+			"precursor": search_data[2],
 			"mz_start": search_data[3],
 			"mz_end": search_data[4],
 			"rt_start": search_data[5],
@@ -122,10 +123,29 @@ def main():
 
 		searches.append(search)
 
-	search_all_regions_in_file("data/" + os.listdir("data/")[0], searches)
+	results = {}
+	#search_all_regions_in_file("data/" + os.listdir("data/")[0], searches)
 
-	#for filename in os.listdir("data/"):
-	#	search_all_regions_in_file("data/" + filename, searches)
+	filenames = os.listdir("data/")
+	filenames.sort()
+
+	for filename in filenames:
+		results[filename] = search_all_regions_in_file("data/" + filename, searches)
+
+	tsv_output = "peak_name"
+
+	for filename in results.keys():
+		tsv_output += "\t" + filename
+
+	for search in searches:
+		tsv_output += "\n" + search["peak_name"]
+
+		for filename in results.keys():
+			tsv_output += "\t" + str(results[filename][search["peak_name"]])
+
+	output_file = open("results.tsv", "w")
+	output_file.write(tsv_output)
+	output_file.close()
 
 if __name__ == "__main__":
 	main()
