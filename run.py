@@ -40,6 +40,8 @@ def search_all_regions_in_file(filepath, searches):
 	new_params.setValue("integration_type", "trapezoid")
 	integrator.setParameters(new_params)
 
+	results = {}
+
 	for search in searches:
 		match search["detector"]:
 			case "FT":
@@ -53,9 +55,7 @@ def search_all_regions_in_file(filepath, searches):
 				
 				all_rt = [spectrum.getRT() for spectrum in demuxed_spectra["FT"]]
 				rt_interval = [rt for rt in all_rt if rt > rt_start and rt < rt_end]
-				#interval_idx = [all_rt.index(rt) for rt in rt_interval]
 				
-				#intensities_interval = [extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end) for spectrum in demuxed_spectra["FT"] if spectrum.getRT() > rt_start and spectrum.getRT() < rt_end]
 				intensities_interval = [extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end) for spectrum in demuxed_spectra["FT"]]
 
 				chromatogram.set_peaks([
@@ -63,7 +63,7 @@ def search_all_regions_in_file(filepath, searches):
 						intensities_interval
 					])
 
-				print(integrator.integratePeak(chromatogram, rt_start, rt_end).area)
+				results[search["molecule_name"]] = integrator.integratePeak(chromatogram, rt_start, rt_end).area
 
 				#rts, ints = chromatogram.get_peaks()
 				#plt.plot(rts, ints)
@@ -75,7 +75,7 @@ def search_all_regions_in_file(filepath, searches):
 			case _:
 				print("Error in search_sheet.tsv! Invalid detector!")
 
-		print(search)
+	print(results)
 
 	#chromatograms = {}
 
