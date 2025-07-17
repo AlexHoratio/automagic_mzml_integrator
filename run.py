@@ -7,7 +7,32 @@ def search_all_regions_in_file(filepath, searches):
 
 	print(filepath, "contains", exp.getNrSpectra(), "spectra.")
 
-	
+	# We always expect one FT and ??? ITs.
+	# We don't know how many precursors there are in each file, nor what they are!
+
+	demuxed_spectra = {
+		"FT": []
+	}
+
+	all_unique_precursors = []
+
+	for spectrum in exp.getSpectra():
+		match spectrum.getMSLevel():
+			case 1:
+				demuxed_spectra["FT"].append(spectrum)
+			case 2:
+				for precursor_ion in spectrum.getPrecursors():
+					it_name = "IT_" + str(precursor_ion.getMZ())
+					if not(it_name in demuxed_spectra.keys()):
+						demuxed_spectra[it_name] = []
+
+					demuxed_spectra[it_name].append(spectrum)
+
+			case _:
+				print("Unknown MS Level:", spectrum.getMSLevel())
+
+	print(demuxed_spectra.keys())
+
 
 def main():
 
