@@ -31,7 +31,16 @@ def search_all_regions_in_file(filepath, searches):
 			case _:
 				print("Unknown MS Level:", spectrum.getMSLevel())
 
-	print(demuxed_spectra.keys())
+	chromatograms = {}
+
+	for detector_id in demuxed_spectra.keys():
+		chromatograms[detector_id] = oms.MSChromatogram()
+		chromatograms[detector_id].set_peaks([
+				[spectrum.getRT() for spectrum in demuxed_spectra[detector_id]],
+				[sum(spectrum.get_intensity_array()) for spectrum in demuxed_spectra[detector_id]]
+			])
+
+	print(chromatograms)
 
 
 def main():
