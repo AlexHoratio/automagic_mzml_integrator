@@ -63,7 +63,7 @@ def search_all_regions_in_file(filepath, searches):
 			case _:
 				print("Error in search_sheet.tsv! Invalid detector!")
 
-		peak_area = 0
+		peak_area = 0.0
 		if scan_type in demuxed_spectra.keys():
 			all_rt = [spectrum.getRT() for spectrum in demuxed_spectra[scan_type]]
 			rt_interval = [rt for rt in all_rt if rt > rt_start and rt < rt_end]
