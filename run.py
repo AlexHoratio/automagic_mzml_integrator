@@ -128,7 +128,10 @@ def main():
 		searches.append(search)
 
 	results = {}
-	#print(search_all_regions_in_file("data/" + os.listdir("data/")[45], searches))
+
+	if False: # Debug mode, selects only one file & prints searches output to console
+		print(search_all_regions_in_file("data/" + os.listdir("data/")[49], searches))
+		return
 
 	filenames = os.listdir("data/")
 	filenames.sort()
