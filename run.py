@@ -82,6 +82,8 @@ def search_all_regions_in_file(filepath, searches):
 		if False:
 			rts, ints = chromatogram.get_peaks()
 			plt.plot(rts, ints)
+			plt.title(search["peak_name"] + " " + filepath)
+			plt.fill_between(x = rts, y1 = ints, where = (rts > rt_start) & (rts < rt_end), color = "b")
 			plt.show()
 
 	return results
@@ -130,7 +132,7 @@ def main():
 	results = {}
 
 	if False: # Debug mode, selects only one file & prints searches output to console
-		print(search_all_regions_in_file("data/" + os.listdir("data/")[49], searches))
+		print(search_all_regions_in_file("data/" + os.listdir("data/")[48 + 5*8], searches))
 		return
 
 	filenames = os.listdir("data/")
