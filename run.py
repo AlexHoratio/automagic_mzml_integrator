@@ -68,7 +68,7 @@ def search_all_regions_in_file(filepath, searches):
 			all_rt = [spectrum.getRT() for spectrum in demuxed_spectra[scan_type]]
 			rt_interval = [rt for rt in all_rt if rt > rt_start and rt < rt_end]
 			
-			intensities_interval = [extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end) for spectrum in demuxed_spectra[scan_type]]
+			intensities_interval = [extract_highest_intensity_in_ion_range(spectrum, mz_start, mz_end) for spectrum in demuxed_spectra[scan_type]]
 
 			chromatogram.set_peaks([
 					all_rt,
@@ -86,7 +86,7 @@ def search_all_regions_in_file(filepath, searches):
 
 	return results
 
-def extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end):
+def extract_highest_intensity_in_ion_range(spectrum, mz_start, mz_end):
 	intensity = 0
 
 	all_mz = spectrum.get_mz_array().tolist()
@@ -96,7 +96,11 @@ def extract_summed_intensity_in_ion_range(spectrum, mz_start, mz_end):
 	all_intensities = spectrum.get_intensity_array()
 	intensities_interval = [all_intensities[i] for i in interval_indexes]
 
-	intensity = float(sum(intensities_interval))
+	intensity = 0.0
+
+	if len(intensities_interval) > 0:
+		intensities_interval.sort()
+		intensity = float(intensities_interval[-1])
 
 	return intensity
 
@@ -124,7 +128,7 @@ def main():
 		searches.append(search)
 
 	results = {}
-	#search_all_regions_in_file("data/" + os.listdir("data/")[0], searches)
+	#print(search_all_regions_in_file("data/" + os.listdir("data/")[45], searches))
 
 	filenames = os.listdir("data/")
 	filenames.sort()
