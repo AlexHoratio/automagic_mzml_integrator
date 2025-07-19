@@ -7,7 +7,9 @@ import os
 
 base_filepath = "data"
 search_sheet_filepath = "search_sheet.tsv"
+images_save_path = "images"
 verbose = None
+save_images = None
 
 def search_all_regions_in_file(filepath, searches):
 	exp = oms.MSExperiment()
@@ -90,12 +92,20 @@ def search_all_regions_in_file(filepath, searches):
 
 		results[search["peak_name"]] = peak_area
 
-		if False:
+		if save_images:
 			rts, ints = chromatogram.get_peaks()
+			plt.clf()
 			plt.plot(rts, ints)
-			plt.title(search["peak_name"] + " " + filepath)
+			plt.title(search["peak_name"] + " " + filepath, fontsize = 10)
 			plt.fill_between(x = rts, y1 = ints, where = (rts > rt_start) & (rts < rt_end), color = "b")
-			plt.show()
+			plt.axis(xmin = rt_start - 100, xmax = rt_end + 100)
+			plt.xticks([rt_start, rt_end], fontsize = 5)
+
+			if not(os.path.exists(images_save_path)):
+				os.makedirs(images_save_path)
+
+			if len(rts) > 0:
+				plt.savefig(images_save_path + "/" + filepath.split("/")[-1] + "_" + search["peak_name"] + ".png")
 
 	return results
 
@@ -267,6 +277,9 @@ def gui_menu():
 
 	global verbose 
 	verbose = tk.IntVar(root, 0)
+
+	global save_images
+	save_images = tk.IntVar(root, 0)
 	
 	#task_entry = ttk.Entry(root, width = 50)
 	#task_entry.pack(pady = 10)
@@ -294,8 +307,9 @@ def gui_menu():
 	settings_button.config(state = tk.DISABLED)
 
 	tk.Checkbutton(buttons_frame, text = "Verbose", variable = verbose, onvalue = 1, offvalue = 0).grid(column = 0, row = 3, columnspan = 3)
+	tk.Checkbutton(buttons_frame, text = "Save Images", variable = save_images, onvalue = 1, offvalue = 0).grid(column = 0, row = 4, columnspan = 3)
 
-	tk.Button(buttons_frame, text = "Quit", command=root.destroy).grid(column = 0, row = 4, columnspan = 3, sticky="WENS")
+	tk.Button(buttons_frame, text = "Quit", command=root.destroy).grid(column = 0, row = 5, columnspan = 3, sticky="WENS")
 
 	root.mainloop()
 
