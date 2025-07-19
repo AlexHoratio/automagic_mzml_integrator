@@ -1,6 +1,11 @@
 import pyopenms as oms
 import matplotlib.pyplot as plt
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
 import os
+
+base_filepath = "data"
 
 def search_all_regions_in_file(filepath, searches):
 	exp = oms.MSExperiment()
@@ -132,14 +137,14 @@ def main():
 	results = {}
 
 	if False: # Debug mode, selects only one file & prints searches output to console
-		print(search_all_regions_in_file("data/" + os.listdir("data/")[48 + 5*8], searches))
+		print(search_all_regions_in_file(base_filepath + "/" + os.listdir(base_filepath + "/")[48 + 5*8], searches))
 		return
 
-	filenames = os.listdir("data/")
+	filenames = os.listdir(base_filepath + "/")
 	filenames.sort()
 
 	for filename in filenames:
-		results[filename] = search_all_regions_in_file("data/" + filename, searches)
+		results[filename] = search_all_regions_in_file(base_filepath + "/" + filename, searches)
 
 	tsv_output = "peak_name"
 
@@ -156,5 +161,51 @@ def main():
 	output_file.write(tsv_output)
 	output_file.close()
 
+def cli_menu():
+	os.system('cls' if os.name == 'nt' else 'clear')
+	print("===========================")
+	print("Auto-Magic MzML Integrator!")
+	print("===========================")
+	print("\n\n")
+	print("1. Run all")
+	print("2. Run selected")
+	print("3. Settings")
+	print("4. Quit")
+	print("")
+
+	choice = input(">")
+
+def gui_menu():
+	root = tk.Tk()
+	root.title("Auto-Magic MzML Integrator")
+	
+	#task_entry = ttk.Entry(root, width = 50)
+	#task_entry.pack(pady = 10)
+
+	frm = tk.ttk.Frame(root, padding = 10)
+	frm.grid(columnspan=3)
+
+	tk.Label(frm, text = "Auto-Magic MzML Integrator!").grid(column = 0, row = 0, columnspan=3)
+
+	files_listbox = tk.Listbox(root, width = 50, height = 10, selectmode=tk.EXTENDED)
+	files_listbox.grid(column = 0, row = 1, columnspan=3)
+
+	filenames = os.listdir(base_filepath + "/")
+	filenames.sort()
+
+	for filename in filenames:
+		files_listbox.insert(tk.END, filename)
+
+	buttons_frame = tk.ttk.Frame(frm).grid(column = 0, row = 2, columnspan=3)
+
+	tk.Button(buttons_frame, text = "Run all").grid(column = 0, row = 2, sticky="WENS")
+	tk.Button(buttons_frame, text = "Run selected").grid(column = 1, row = 2, sticky="WENS")
+	tk.Button(buttons_frame, text = "Settings").grid(column = 2, row = 2, sticky="WENS")
+	tk.Button(buttons_frame, text = "Quit", command=root.destroy).grid(column = 0, row = 3, columnspan = 3, sticky="WENS")
+
+	#ttk.Button(frm, text = "Quit", command=root.destroy).grid(column = 1, row = 0)
+	
+	root.mainloop()
+
 if __name__ == "__main__":
-	main()
+	gui_menu()
