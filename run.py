@@ -98,14 +98,14 @@ def search_all_regions_in_file(filepath, searches):
 			plt.plot(rts, ints)
 			plt.title(search["peak_name"] + " " + filepath, fontsize = 10)
 			plt.fill_between(x = rts, y1 = ints, where = (rts > rt_start) & (rts < rt_end), color = "b")
-			plt.axis(xmin = rt_start - 100, xmax = rt_end + 100)
-			plt.xticks([rt_start, rt_end], fontsize = 5)
+			plt.axis(xmin = rt_start - 60, xmax = rt_end + 60)
+			plt.xticks([rt_start, rt_end], fontsize = 8)
 
 			if not(os.path.exists(images_save_path)):
 				os.makedirs(images_save_path)
 
 			if len(rts) > 0:
-				plt.savefig(images_save_path + "/" + filepath.split("/")[-1] + "_" + search["peak_name"] + ".png")
+				plt.savefig(images_save_path + "/" + filepath.split("/")[-1] + "_" + search["peak_name"] + ".jpg")
 
 	return results
 
