@@ -6,6 +6,8 @@ from tkinter import messagebox
 import os
 
 base_filepath = "data"
+search_sheet_filepath = "search_sheet.tsv"
+verbose = None
 
 def search_all_regions_in_file(filepath, searches):
 	exp = oms.MSExperiment()
@@ -48,6 +50,9 @@ def search_all_regions_in_file(filepath, searches):
 	results = {}
 
 	for search in searches:
+		if verbose.get() == 1:
+			print("Searching for " + search["peak_name"])
+
 		chromatogram = oms.MSChromatogram()
 
 		mz_start = float(search["mz_start"])
@@ -113,7 +118,7 @@ def extract_highest_intensity_in_ion_range(spectrum, mz_start, mz_end):
 
 def main():
 
-	search_sheet_file = open("search_sheet.tsv", "r")
+	search_sheet_file = open(search_sheet_filepath, "r")
 	search_sheet = search_sheet_file.readlines()
 	search_sheet_file.close()
 
@@ -175,9 +180,92 @@ def cli_menu():
 
 	choice = input(">")
 
+def update_data_path(new_value):
+	pass
+
+def update_search_path(new_value):
+	pass
+
+def gui_open_settings(root):
+	settings_window = tk.Toplevel(root)
+	settings_window.title("MzML Settings")
+	data_sv = tk.StringVar(root, value = base_filepath + "/")
+	search_sv = tk.StringVar(root, value = search_sheet_filepath)
+
+	sett_frm = tk.ttk.Frame(settings_window, padding = 10)
+	sett_frm.grid()
+
+	tk.ttk.Label(sett_frm, text = "MzML Files Relative Path:").grid(column=0, row = 0, padx = 5)
+	data_path = tk.ttk.Entry(sett_frm, width = 50, textvariable = data_sv)
+	data_path.grid(column = 1, row = 0)	
+	data_path.insert(tk.END, string = "asdf")
+	print(data_sv.get())
+
+	tk.ttk.Label(sett_frm, text = "Search Sheet Relative Path:").grid(column=0, row = 1, padx = 5)
+	search_sheet_path = tk.ttk.Entry(sett_frm, width = 50, textvariable = search_sv)
+	search_sheet_path.grid(column = 1, row = 1)	
+
+def open_run_dialogue(root, files=[]):
+	filenames = []
+
+	if len(files) == 0:
+		filenames = os.listdir(base_filepath + "/")
+		filenames.sort()
+
+	else:
+		filenames = files
+
+	search_sheet_file = open(search_sheet_filepath, "r")
+	search_sheet = search_sheet_file.readlines()
+	search_sheet_file.close()
+
+	searches = []
+
+	for i in range(1, len(search_sheet)):
+		search_data = search_sheet[i].strip().split("\t")
+
+		search = {
+			"peak_name": search_data[0],
+			"detector": search_data[1],			
+			"precursor": search_data[2],
+			"mz_start": search_data[3],
+			"mz_end": search_data[4],
+			"rt_start": search_data[5],
+			"rt_end": search_data[6]
+		}
+
+		searches.append(search)
+
+	results = {}
+
+	for filename in filenames:
+		results[filename] = search_all_regions_in_file(base_filepath + "/" + filename, searches)
+
+	print("Writing to file... (results.tsv)")
+
+	tsv_output = "peak_name"
+
+	for filename in results.keys():
+		tsv_output += "\t" + filename
+
+	for search in searches:
+		tsv_output += "\n" + search["peak_name"]
+
+		for filename in results.keys():
+			tsv_output += "\t" + str(results[filename][search["peak_name"]])
+
+	output_file = open("results.tsv", "w")
+	output_file.write(tsv_output)
+	output_file.close()
+
+	print("All done! =)")
+
 def gui_menu():
 	root = tk.Tk()
 	root.title("Auto-Magic MzML Integrator")
+	
+	global verbose 
+	verbose = tk.IntVar(root, 0)
 	
 	#task_entry = ttk.Entry(root, width = 50)
 	#task_entry.pack(pady = 10)
@@ -198,13 +286,16 @@ def gui_menu():
 
 	buttons_frame = tk.ttk.Frame(frm).grid(column = 0, row = 2, columnspan=3)
 
-	tk.Button(buttons_frame, text = "Run all").grid(column = 0, row = 2, sticky="WENS")
-	tk.Button(buttons_frame, text = "Run selected").grid(column = 1, row = 2, sticky="WENS")
-	tk.Button(buttons_frame, text = "Settings").grid(column = 2, row = 2, sticky="WENS")
-	tk.Button(buttons_frame, text = "Quit", command=root.destroy).grid(column = 0, row = 3, columnspan = 3, sticky="WENS")
+	tk.Button(buttons_frame, text = "Run all", command=lambda: open_run_dialogue(root)).grid(column = 0, row = 2, sticky="WENS")
+	tk.Button(buttons_frame, text = "Run selected", command=lambda: open_run_dialogue(root, [files_listbox.get(index) for index in files_listbox.curselection()])).grid(column = 1, row = 2, sticky="WENS")
+	settings_button = tk.Button(buttons_frame, text = "Settings", command=lambda: gui_open_settings(root))
+	settings_button.grid(column = 2, row = 2, sticky="WENS")
+	settings_button.config(state = tk.DISABLED)
 
-	#ttk.Button(frm, text = "Quit", command=root.destroy).grid(column = 1, row = 0)
-	
+	tk.Checkbutton(buttons_frame, text = "Verbose", variable = verbose, onvalue = 1, offvalue = 0).grid(column = 0, row = 3, columnspan = 3)
+
+	tk.Button(buttons_frame, text = "Quit", command=root.destroy).grid(column = 0, row = 4, columnspan = 3, sticky="WENS")
+
 	root.mainloop()
 
 if __name__ == "__main__":
