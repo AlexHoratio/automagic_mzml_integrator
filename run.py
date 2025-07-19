@@ -30,7 +30,7 @@ def search_all_regions_in_file(filepath, searches):
 				demuxed_spectra["FT"].append(spectrum)
 			case 2:
 				for precursor_ion in spectrum.getPrecursors():
-					it_name = "IT_" + str(precursor_ion.getMZ())
+					it_name = "IT" + str(precursor_ion.getMZ())
 					if not(it_name in demuxed_spectra.keys()):
 						demuxed_spectra[it_name] = []
 
@@ -50,8 +50,6 @@ def search_all_regions_in_file(filepath, searches):
 	results = {}
 
 	for search in searches:
-		if verbose.get() == 1:
-			print("Searching for " + search["peak_name"])
 
 		chromatogram = oms.MSChromatogram()
 
@@ -68,10 +66,13 @@ def search_all_regions_in_file(filepath, searches):
 				scan_type = "FT"
 
 			case "IT":
-				scan_type = "IT_" + str(search["precursor"])
+				scan_type = "IT" + str(search["precursor"])
 
 			case _:
 				print("Error in search_sheet.tsv! Invalid detector!")
+
+		if verbose.get() == 1:
+			print("Searching for " + search["peak_name"] + " in detector " + (scan_type) + "\nM/Z " + str(mz_start) + "-" + str(mz_end) + "\nRT(s) " + str(rt_start) + "-" + str(rt_end) + "\nRT(min) " + str(round(rt_start/60, 2)) + "-" + str(round(rt_end/60, 2)) + "")
 
 		peak_area = 0.0
 		if scan_type in demuxed_spectra.keys():
@@ -258,12 +259,12 @@ def open_run_dialogue(root, files=[]):
 	output_file.write(tsv_output)
 	output_file.close()
 
-	print("All done! =)")
+	print("\nAll done! =)")
 
 def gui_menu():
 	root = tk.Tk()
 	root.title("Auto-Magic MzML Integrator")
-	
+
 	global verbose 
 	verbose = tk.IntVar(root, 0)
 	
